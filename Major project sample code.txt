@@ -1,0 +1,114 @@
+https://openprocessing.org/sketch/1927169
+______________________________________________
+mySketch
+
+let particles = [];
+let attractors = [];
+let nParticles = 1000;
+let img;
+
+
+function preload(){
+	img = loadImage("https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/1920px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg");
+}
+
+function setup() {
+	createCanvas(windowWidth, windowHeight);
+	
+	if(width > height){
+		img.resize(0, height);
+	}else{
+		img.resize(width, 0);
+	}
+	
+	resizeCanvas(img.width, img.height);
+	
+	background(0);
+	
+	for(let i = 0; i < nParticles; i++){
+    particles[i] = new Particle();
+  }
+}
+
+function draw() {
+	
+	strokeWeight(attractors.length * 2);
+	
+  for(let i = 0; i < particles.length; i++){
+    particles[i].update();
+    particles[i].show();
+  }
+	
+  for(let i = 0; i < attractors.length; i++){
+    //attractors[i].show();
+		//attractors[i].update();
+		attractors[i].lifeTime --;
+		
+		if(attractors[i].lifeTime <= 0){
+			attractors.splice(i, 1);
+		}
+    
+  }
+}
+
+function mousePressed(){
+    attractors.push(new Attractor(mouseX, mouseY));
+}
+
+
+__________________________________________________
+tab2
+
+class Particle{
+  constructor(){
+    this.pos = createVector(random(width), random(height));
+    this.vel = createVector(0, 0);
+		this.colour = img.get(round(this.pos.x), round(this.pos.y));
+  }
+	show(){
+		stroke(img.get(round(this.pos.x), round(this.pos.y)));
+		line(this.pos.x, this.pos.y, this.pos.x - this.vel.x, this.pos.y - this.vel.y);
+	}
+ update(){
+    this.vel = createVector(0, 0);
+    for(let i = 0; i < attractors.length; i++){
+      this.vector = p5.Vector.sub(this.pos, attractors[i].pos);
+      this.vector.setMag(1/this.vector.mag());
+      if(attractors[i].clockwise) this.vector.rotate(-HALF_PI);
+      else this.vector.rotate(HALF_PI);
+      this.vel.add(this.vector);
+    }
+    this.vel.setMag(1);
+    this.pos.add(this.vel);
+	 	/*
+		if(this.pos.x > width || this.pos.x < 0 || this.pos.y > height || this.pos.y < 0){
+			this.pos = createVector(random(width), random(height));
+		}
+		*/
+	}
+}
+
+______________________________________________________
+tab3
+
+class Attractor{
+	constructor(x, y){
+		this.pos = createVector(x, y);
+		this.vel = createVector(random(-1, 1), random(-1, 1));
+		this.lifeTime = 500;
+		if(random(1) > 0.5) this.clockwise = true;
+    else this.clockwise = false;
+	}
+	show(){
+    if(this.clockwise) fill(255, 0, 0);
+    else fill(0, 255, 0);
+    circle(this.pos.x, this.pos.y, 50);
+  }
+	update(){
+		this.pos.add(this.vel);
+		
+		if(this.pos.x >= width || this.pos.x <= 0) this.vel.x *=  -1;
+		if(this.pos.y >= height || this.pos.y <= 0) this.vel.y *=  -1;
+	}
+}
+
